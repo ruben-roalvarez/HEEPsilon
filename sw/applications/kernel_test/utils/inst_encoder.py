@@ -123,18 +123,19 @@ CGRA_KMEM_N_KER = 16
 #                                                               #
 #################################################################
 
-RCS_MUXA_BITS    = 4
-RCS_MUXB_BITS    = 4
+RCS_MUXA_BITS    = 3
+RCS_MUXA_RF_BITS = 2
+RCS_MUXB_BITS    = 3
+RCS_MUXB_RF_BITS = 2
 RCS_ALU_OP_BITS  = 5
 RCS_RF_WADD_BITS = 2
-RCS_RF_WE_BITS   = 1
 RCS_MUXFLAG_BITS = 3
-RCS_IMM_BITS     = 13
+RCS_IMM_BITS     = 12
 
-CGRA_IMEM_WIDTH = RCS_MUXA_BITS+RCS_MUXB_BITS+RCS_ALU_OP_BITS+RCS_RF_WADD_BITS+RCS_RF_WE_BITS+RCS_MUXFLAG_BITS+RCS_IMM_BITS
+CGRA_IMEM_WIDTH = RCS_MUXA_BITS+RCS_MUXA_RF_BITS+RCS_MUXB_BITS+RCS_MUXB_RF_BITS+RCS_ALU_OP_BITS+RCS_RF_WADD_BITS+RCS_MUXFLAG_BITS+RCS_IMM_BITS
 
-muxA_list     = ['ZERO', 'SELF', 'RCL', 'RCR', 'RCT', 'RCB',  'R0', 'R1', 'R2', 'R3', 'IMM']
-muxB_list     = ['ZERO', 'SELF', 'RCL', 'RCR', 'RCT', 'RCB',  'R0', 'R1', 'R2', 'R3', 'IMM']
+muxA_list     = ['ZERO', 'SELF', 'RCL', 'RCR', 'RCT', 'RCB', 'IMM']
+muxB_list     = ['ZERO', 'SELF', 'RCL', 'RCR', 'RCT', 'RCB', 'IMM']
 
 ALU_op_list   = ['NOP', 
                  'SADD', 'SSUB', 'SMUL', 'FXPMUL', 
@@ -147,11 +148,10 @@ ALU_op_list   = ['NOP',
 
 # BSFA --> operand a if sign flag, else operand b
 
-reg_dest_list  = ['R0', 'R1', 'R2', 'R3']
-reg_we_list    = ['0', '1']
+reg_list  = ['R0', 'R1', 'R2', 'R3']
 muxF_list      = ['SELF', 'RCL', 'RCR', 'RCT', 'RCB']
 
-rcs_nop_instr = ['ZERO', 'ZERO', 'NOP', '-', 'SELF', '0']
+rcs_nop_instr = ['ZERO', 'ZERO', 'NOP', 'R0', 'SELF', '0']
 
 #####################################################################################
 #  _  _______ _____     _____ ____  _   _ _____  __          ______  _____  _____   #
@@ -209,7 +209,7 @@ rcs_instructions    = [[rcs_nop_instr for _ in range(CGRA_IMEM_N_LINE)] for _ in
 # First entry is always null
 ker_conf_words[0] = ker_null_conf
 
-intr_log = False
+intr_log = True
 set_path = False
 
 
@@ -243,25 +243,32 @@ for i in range(0,CGRA_N_ROW):
             if cmd == '-':
                 cmd = rcs_nop_instr[idx]
 
-            # Don't care for register destination also need a 0 bit to disable write to register
-            if idx == 3:
-                # Default command
-                cmd_tmp = ['R0', '0']
-                # If we write to a register put a 1 for write enable
-                if cmd != '-':
-                    cmd_tmp[0] = cmd
-                    cmd_tmp[1] = '1'
-                cmd = cmd_tmp
-
             if idx == 0:
-                instr_bits = instr_bits + get_bin(return_indices_of_a(muxA_list, cmd, 'muxA_list'), RCS_MUXA_BITS)
+                cmd_0 = cmd
+                cmd_1 = 'R0'
+                if cmd in reg_list:
+                    cmd_0 = 'SELF'
+                    cmd_1 = cmd
+                elif cmd[:2] in reg_list:
+                    cmd_0 = 'RC' + cmd[2]
+                    cmd_1 = cmd[:2]
+                instr_bits = instr_bits + get_bin(return_indices_of_a(muxA_list, cmd_0, 'muxA_list'), RCS_MUXA_BITS)
+                instr_bits = instr_bits + get_bin(return_indices_of_a(reg_list, cmd_1, 'muxA_rf_list'), RCS_MUXA_RF_BITS)
             elif idx == 1:
-                instr_bits = instr_bits + get_bin(return_indices_of_a(muxB_list, cmd, 'muxB_list'), RCS_MUXB_BITS)
+                cmd_0 = cmd
+                cmd_1 = 'R0'
+                if cmd in reg_list:
+                    cmd_0 = 'SELF'
+                    cmd_1 = cmd
+                elif cmd[:2] in reg_list:
+                    cmd_0 = 'RC' + cmd[2]
+                    cmd_1 = cmd[:2]
+                instr_bits = instr_bits + get_bin(return_indices_of_a(muxB_list, cmd_0, 'muxB_list'), RCS_MUXB_BITS)
+                instr_bits = instr_bits + get_bin(return_indices_of_a(reg_list, cmd_1, 'muxB_rf_list'), RCS_MUXB_RF_BITS)
             elif idx == 2:
                 instr_bits = instr_bits + get_bin(return_indices_of_a(ALU_op_list, cmd, 'ALU_op_list'), RCS_ALU_OP_BITS)
             elif idx == 3:
-                instr_bits = instr_bits + get_bin(return_indices_of_a(reg_dest_list, cmd[0], 'reg_dest_list'), RCS_RF_WADD_BITS)
-                instr_bits = instr_bits + get_bin(return_indices_of_a(reg_we_list, cmd[1], 'reg_we_list'), RCS_RF_WE_BITS)
+                instr_bits = instr_bits + get_bin(return_indices_of_a(reg_list, cmd, 'reg_dest_list'), RCS_RF_WADD_BITS)
             elif idx == 4:
                 instr_bits = instr_bits + get_bin(return_indices_of_a(muxF_list, cmd, 'muxF_list'), RCS_MUXFLAG_BITS)
             elif idx == 5:
@@ -279,9 +286,9 @@ with open(BITSTREAMS_PATH, 'w') as f:
 
 
 
-exec(open("io_gen.py").read())
+# exec(open("io_gen.py").read())
 
-exec(open("heeptest_gen.py").read())
+# exec(open("heeptest_gen.py").read())
 
 
 #####################################################################################

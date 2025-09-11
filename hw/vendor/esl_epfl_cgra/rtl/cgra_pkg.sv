@@ -70,11 +70,11 @@ package cgra_pkg;
 
   // DATAPATH OPTIONS
 
-  localparam RC_MUX_A_NUM_INPUTS   = 16;
+  localparam RC_MUX_A_NUM_INPUTS   = 8;
   localparam RC_MUX_A_NSEL         = $clog2(RC_MUX_A_NUM_INPUTS);
   localparam RC_MUX_A_INPUTS_WIDTH = DP_WIDTH;
 
-  localparam RC_MUX_B_NUM_INPUTS   = 16;
+  localparam RC_MUX_B_NUM_INPUTS   = 8;
   localparam RC_MUX_B_NSEL         = $clog2(RC_MUX_B_NUM_INPUTS);
   localparam RC_MUX_B_INPUTS_WIDTH = DP_WIDTH;
 
@@ -115,6 +115,12 @@ package cgra_pkg;
   localparam CGRA_ALU_LWI    = 5'b10111;
   localparam CGRA_ALU_SWI    = 5'b11000;
   localparam CGRA_ALU_EXIT   = 5'b11001;
+  //  localparam CGRA_ALU_   = 5'b11010;
+  //  localparam CGRA_ALU_   = 5'b11011;
+  //  localparam CGRA_ALU_   = 5'b11100;
+  //  localparam CGRA_ALU_   = 5'b11101;
+  //  localparam CGRA_ALU_   = 5'b11110;
+  //  localparam CGRA_ALU_   = 5'b11111;
 
   // Number of columns needed  : 1 bit per column      :  4
   // RCs kernel start address  : clog2(RC_INSTR_N_REG) :  7

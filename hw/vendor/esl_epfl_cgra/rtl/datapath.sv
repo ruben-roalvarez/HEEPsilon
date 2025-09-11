@@ -11,18 +11,17 @@ module datapath
   input  logic [      INSTR_WIDTH-1:0] conf_rdata_i,
   input  logic [         DP_WIDTH-1:0] data_rdata_i,
   input  logic                         data_rvalid_i,
-  input  logic [         DP_WIDTH-1:0] own_res_i,
-  input  logic [         DP_WIDTH-1:0] left_res_i,
-  input  logic [         DP_WIDTH-1:0] right_res_i,
-  input  logic [         DP_WIDTH-1:0] top_res_i,
-  input  logic [         DP_WIDTH-1:0] bottom_res_i,
+  input  logic [         DP_WIDTH-1:0] left_regs_i   [0:RC_NUM_REG-1],
+  input  logic [         DP_WIDTH-1:0] right_regs_i  [0:RC_NUM_REG-1],
+  input  logic [         DP_WIDTH-1:0] top_regs_i    [0:RC_NUM_REG-1],
+  input  logic [         DP_WIDTH-1:0] bottom_regs_i [0:RC_NUM_REG-1],
   input  logic [       ALU_N_FLAG-1:0] own_flag_i,
   input  logic [       ALU_N_FLAG-1:0] left_flag_i,
   input  logic [       ALU_N_FLAG-1:0] right_flag_i,
   input  logic [       ALU_N_FLAG-1:0] top_flag_i,
   input  logic [       ALU_N_FLAG-1:0] bottom_flag_i,
   input  logic                         conf_re_i,
-  output logic [         DP_WIDTH-1:0] result_o,
+  output logic [         DP_WIDTH-1:0] self_regs_o   [0:RC_NUM_REG-1],
   output logic [       ALU_N_FLAG-1:0] flag_o,
   output logic                         br_req_o,
   output logic [RCS_NUM_CREG_LOG2-1:0] br_add_o,
@@ -38,11 +37,25 @@ module datapath
 
   logic [         DP_WIDTH-1:0] mux_a_out;
   logic [         DP_WIDTH-1:0] mux_b_out;
+
+  logic [         DP_WIDTH-1:0] self_a_res;
+  logic [         DP_WIDTH-1:0] left_a_res;
+  logic [         DP_WIDTH-1:0] right_a_res;
+  logic [         DP_WIDTH-1:0] top_a_res;
+  logic [         DP_WIDTH-1:0] bottom_a_res;
+  logic [         DP_WIDTH-1:0] self_b_res;
+  logic [         DP_WIDTH-1:0] left_b_res;
+  logic [         DP_WIDTH-1:0] right_b_res;
+  logic [         DP_WIDTH-1:0] top_b_res;
+  logic [         DP_WIDTH-1:0] bottom_b_res;
+
   logic [       ALU_N_FLAG-1:0] mux_flag_out;
   logic [    RC_MUX_A_NSEL-1:0] mux_a_sel;
   logic [         DP_WIDTH-1:0] mux_a_inputs [0:RC_MUX_A_NUM_INPUTS-1];
+  logic [   RC_NUM_REG_LOG-1:0] mux_a_rf_sel;
   logic [    RC_MUX_B_NSEL-1:0] mux_b_sel;
   logic [         DP_WIDTH-1:0] mux_b_inputs [0:RC_MUX_B_NUM_INPUTS-1];
+  logic [   RC_NUM_REG_LOG-1:0] mux_b_rf_sel;
   logic [ RC_MUX_FLAG_NSEL-1:0] mux_flag_sel;
   logic [       ALU_N_FLAG-1:0] mux_flag_inputs [0:RC_MUX_FLAG_NUM_INPUTS-1];
   logic [         DP_WIDTH-1:0] alu_res;
@@ -59,20 +72,26 @@ module datapath
   logic                         data_we_s;
   logic                         data_ind_s;
   logic [         DP_WIDTH-1:0] data_alu_mux;
-  // logic [         DP_WIDTH-1:0] data_rdata_reg;
   logic                         rf_en;
 
 
+  // Visible RF output
+  always_comb begin
+    for (int i = 0; i < RC_NUM_REG; i++) begin
+      self_regs_o[i] = regs_rdata[i];
+    end
+  end
+
   assign flag_o      = alu_flag;
-  // assign result_o    = alu_res;
 
   // Here the configuration word is decoded and fed to the different components
-  assign mux_a_sel    = conf_rdata_i[31:28];
-  assign mux_b_sel    = conf_rdata_i[27:24];
-  assign alu_op       = conf_rdata_i[23:19];
-  assign reg_sel      = conf_rdata_i[18:17]; // selected register to write to
-  assign reg_we       = conf_rdata_i[16];    // enable write to a register
-  assign mux_flag_sel = conf_rdata_i[15:13];
+  assign mux_a_sel    = conf_rdata_i[31:29];
+  assign mux_a_rf_sel = conf_rdata_i[28:27];
+  assign mux_b_sel    = conf_rdata_i[26:24];
+  assign mux_b_rf_sel = conf_rdata_i[23:22];
+  assign alu_op       = conf_rdata_i[21:17];
+  assign reg_sel      = conf_rdata_i[16:15]; // selected register to write to
+  assign mux_flag_sel = conf_rdata_i[14:12];
   assign imm_val      = conf_rdata_i[RC_CONST_WIDTH-1:0];
   assign imm_sign_ext = {{(DP_WIDTH-RC_CONST_WIDTH){imm_val[RC_CONST_WIDTH-1]}}, imm_val[RC_CONST_WIDTH-1:0]};
 
@@ -83,6 +102,30 @@ module datapath
   // otherwise wait end of instruction and update the register but not if 
   // it has already been updated from a data request
   assign rf_en = (data_req_s & data_rvalid_i) | (ce_i & ~data_req_s);
+
+  // Detect when to write in the register file
+  assign reg_we = (
+    alu_op == CGRA_ALU_SADD   |
+    alu_op == CGRA_ALU_SSUB   |
+    alu_op == CGRA_ALU_SMUL   |
+    alu_op == CGRA_ALU_FXPMUL |
+    alu_op == CGRA_ALU_SLL    |
+    alu_op == CGRA_ALU_SRL    |
+    alu_op == CGRA_ALU_SRA    |
+    alu_op == CGRA_ALU_LAND   |
+    alu_op == CGRA_ALU_LOR    |
+    alu_op == CGRA_ALU_LXOR   |
+    alu_op == CGRA_ALU_LNAND  |
+    alu_op == CGRA_ALU_LNOR   |
+    alu_op == CGRA_ALU_LNXOR  |
+    alu_op == CGRA_ALU_BSFA   |
+    alu_op == CGRA_ALU_BZFA   |
+    alu_op == CGRA_ALU_LWD    |
+    alu_op == CGRA_ALU_SWD    |
+    alu_op == CGRA_ALU_LWI    |
+    alu_op == CGRA_ALU_SWI
+    ) ? 1'b1 : 1'b0;
+
 
   //////////////////////////////////
   //  _     ____    ______ _____  //
@@ -140,16 +183,6 @@ module datapath
       data_alu_mux = data_rdata_i;
     end else begin
       data_alu_mux = alu_res;
-    end
-  end
-
-  // For write memory access, operand a holds the wdata
-  always_comb
-  begin
-    if (data_req_s == 1'b1 && data_we_s == 1'b1) begin
-      result_o = mux_a_out;
-    end else begin
-      result_o = alu_res;
     end
   end
 
@@ -214,38 +247,22 @@ module datapath
   //--------------------------------------------------------
 
   assign mux_a_inputs[ 0] = '0; // Hardcoded zero entry
-  assign mux_a_inputs[ 1] = own_res_i;
-  assign mux_a_inputs[ 2] = left_res_i;
-  assign mux_a_inputs[ 3] = right_res_i;
-  assign mux_a_inputs[ 4] = top_res_i;
-  assign mux_a_inputs[ 5] = bottom_res_i;
-  assign mux_a_inputs[ 6] = regs_rdata[0];
-  assign mux_a_inputs[ 7] = regs_rdata[1];
-  assign mux_a_inputs[ 8] = regs_rdata[2];
-  assign mux_a_inputs[ 9] = regs_rdata[3];
-  assign mux_a_inputs[10] = imm_sign_ext;
-  assign mux_a_inputs[11] = '0; // free
-  assign mux_a_inputs[12] = '0; // free
-  assign mux_a_inputs[13] = '0; // free
-  assign mux_a_inputs[14] = '0; // free
-  assign mux_a_inputs[15] = '0; // free
+  assign mux_a_inputs[ 1] = self_a_res;
+  assign mux_a_inputs[ 2] = left_a_res;
+  assign mux_a_inputs[ 3] = right_a_res;
+  assign mux_a_inputs[ 4] = top_a_res;
+  assign mux_a_inputs[ 5] = bottom_a_res;
+  assign mux_a_inputs[ 6] = imm_sign_ext;
+  assign mux_a_inputs[ 7] = '0; // free
 
   assign mux_b_inputs[ 0] = '0; // Hardcoded zero entry
-  assign mux_b_inputs[ 1] = own_res_i;
-  assign mux_b_inputs[ 2] = left_res_i;
-  assign mux_b_inputs[ 3] = right_res_i;
-  assign mux_b_inputs[ 4] = top_res_i;
-  assign mux_b_inputs[ 5] = bottom_res_i;
-  assign mux_b_inputs[ 6] = regs_rdata[0];
-  assign mux_b_inputs[ 7] = regs_rdata[1];
-  assign mux_b_inputs[ 8] = regs_rdata[2];
-  assign mux_b_inputs[ 9] = regs_rdata[3];
-  assign mux_b_inputs[10] = imm_sign_ext;
-  assign mux_b_inputs[11] = '0; // free
-  assign mux_b_inputs[12] = '0; // free
-  assign mux_b_inputs[13] = '0; // free
-  assign mux_b_inputs[14] = '0; // free
-  assign mux_b_inputs[15] = '0; // free
+  assign mux_b_inputs[ 1] = self_b_res;
+  assign mux_b_inputs[ 2] = left_b_res;
+  assign mux_b_inputs[ 3] = right_b_res;
+  assign mux_b_inputs[ 4] = top_b_res;
+  assign mux_b_inputs[ 5] = bottom_b_res;
+  assign mux_b_inputs[ 6] = imm_sign_ext;
+  assign mux_b_inputs[ 7] = '0; // free
 
   assign mux_flag_inputs[0] = own_flag_i;
   assign mux_flag_inputs[1] = left_flag_i;
@@ -256,6 +273,110 @@ module datapath
   assign mux_flag_inputs[6] = '0; // free
   assign mux_flag_inputs[7] = '0; // free
 
+  // Self
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_a_self_rf_i
+  (
+    .mux_inputs ( regs_rdata   ),
+    .mux_sel    ( mux_a_rf_sel ),
+    .mux_o      ( self_a_res   )
+  );
+  
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_b_self_rf_i
+  (
+    .mux_inputs ( regs_rdata   ),
+    .mux_sel    ( mux_b_rf_sel ),
+    .mux_o      ( self_b_res   )
+  );
+
+  // Left
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_a_left_rf_i
+  (
+    .mux_inputs ( left_regs_i  ),
+    .mux_sel    ( mux_a_rf_sel ),
+    .mux_o      ( left_a_res   )
+  );
+
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_b_left_rf_i
+  (
+    .mux_inputs ( left_regs_i  ),
+    .mux_sel    ( mux_b_rf_sel ),
+    .mux_o      ( left_b_res   )
+  );
+
+  // Right
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_a_right_rf_i
+  (
+    .mux_inputs ( right_regs_i ),
+    .mux_sel    ( mux_a_rf_sel ),
+    .mux_o      ( right_a_res  )
+  );
+
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_b_right_rf_i
+  (
+    .mux_inputs ( right_regs_i ),
+    .mux_sel    ( mux_b_rf_sel ),
+    .mux_o      ( right_b_res  )
+  );
+
+  // Top
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_a_top_rf_i
+  (
+    .mux_inputs ( top_regs_i   ),
+    .mux_sel    ( mux_a_rf_sel ),
+    .mux_o      ( top_a_res    )
+  );
+
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_b_top_rf_i
+  (
+    .mux_inputs ( top_regs_i   ),
+    .mux_sel    ( mux_b_rf_sel ),
+    .mux_o      ( top_b_res    )
+  );
+
+  // Bottom
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_a_bottom_rf_i
+  (
+    .mux_inputs ( bottom_regs_i),
+    .mux_sel    ( mux_a_rf_sel ),
+    .mux_o      ( bottom_a_res )
+  );
+
+  mux #(
+    .MUX_NUM_INPUTS   ( RC_NUM_REG ),
+    .MUX_INPUTS_WIDTH ( DP_WIDTH   )
+  ) mux_b_bottom_rf_i
+  (
+    .mux_inputs ( bottom_regs_i),
+    .mux_sel    ( mux_b_rf_sel ),
+    .mux_o      ( bottom_b_res )
+  );
 
   mux #(
     .MUX_NUM_INPUTS   ( RC_MUX_A_NUM_INPUTS ),
