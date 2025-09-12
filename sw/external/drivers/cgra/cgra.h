@@ -13,7 +13,7 @@
 #define CGRA_INTR EXT_INTR_0
 
 #define CGRA_KMEM_SIZE 16
-#define CGRA_IMEM_SIZE 512
+#define CGRA_IMEM_SIZE 1024
 #define CGRA_N_SLOTS   2
 #define CGRA_N_COLS    4
 #define CGRA_N_ROWS    4

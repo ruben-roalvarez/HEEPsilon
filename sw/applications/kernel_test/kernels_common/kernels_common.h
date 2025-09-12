@@ -60,17 +60,17 @@
 #define PRINT_LATEX             0
 #define PRINT_TABBED            0
 #define PRINT_PLOT              0
-#define PRINT_RESULTS           1
+#define PRINT_RESULTS           0
 #define PRINT_CGRA_RESULTS      0
 
 #define REPEAT_FIRST_INPUT      1
 
 #define WATCHDOG_CYCLES         100000
 
-#define ANALYZE_EVERYTHING      0
+#define ANALYZE_EVERYTHING      1
 
 #define EXECUTE_SOFTWARE        1
-#define MEASUREMENTS            0
+#define MEASUREMENTS            1
 #define MEASURE_DEVIATION       0
 #define MEASURE_REPORTED        0
 #define MEASURE_RATIO           0
@@ -83,7 +83,7 @@
 #define PIN_TO_CTRL_VCD         20   // In sync w/ hardware, do not change
 #define PIN_TO_NEW_VCD          21
 
-#define ITERATIONS_PER_KERNEL   1
+#define ITERATIONS_PER_KERNEL   2
 #define PERF_PLOT_SCALE_DOWN    5
 
 

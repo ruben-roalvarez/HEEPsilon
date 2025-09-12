@@ -189,7 +189,7 @@ def translate_instructions(instr_usi) :
 
         if instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_usi) + " -> " + string_instr(instr_epfl))
+                sys.exit("Can't have two immediates as input (1): "+ string_instr(instr_usi) + " -> " + string_instr(instr_epfl))
             instr_epfl[-1] = instr_usi[3]
             instr_epfl[1] = 'IMM'
     elif op in type_3_instr :
@@ -207,7 +207,7 @@ def translate_instructions(instr_usi) :
             check = True
         elif instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_epfl))
+                sys.exit("Can't have two immediates as input (2): "+ string_instr(instr_epfl))
             instr_epfl[-1] = instr_usi[3]
     elif op in type_6_instr :
         if op == 'INA' :
@@ -245,19 +245,19 @@ def translate_instructions(instr_usi) :
         else :
             instr_epfl = ['-','-',op,instr_usi[1],'-','-']
     elif op == 'JUMP' :
-        instr_epfl=[instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",\
-                    instr_usi[3] if (instr_usi[3] in muxB_list_ext) else "ZERO",'JUMP',\
+        instr_epfl=[instr_usi[1] if (instr_usi[1] in muxA_list_ext) else "ZERO",\
+                    instr_usi[2] if (instr_usi[2] in muxB_list_ext) else "ZERO",'JUMP',\
                     '-','-','-']
 
-        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
-            instr_epfl[-1] = instr_usi[2]
+        if instr_usi[1] not in muxA_list_ext and instr_usi[1] not in ['-', '0'] :
+            instr_epfl[-1] = instr_usi[1]
             instr_epfl[0] = 'IMM'
             check = True
 
-        if instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-'] :
+        if instr_usi[2] not in muxB_list_ext and instr_usi[2] not in ['-', '0'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_epfl))
-            instr_epfl[-1] = instr_usi[3]
+                sys.exit("Can't have two immediates as input (3): "+ string_instr(instr_usi) + ' -> ' + string_instr(instr_epfl))
+            instr_epfl[-1] = instr_usi[2]
             instr_epfl[1] = 'IMM'
     elif op == 'EXIT' :
         instr_epfl = ['-','-','EXIT','-','-','-']

@@ -103,10 +103,10 @@ def return_indices_of_a(a, b, name = ''):
 ##########################################################################
 
 
-RCS_NUM_CREG      = 32;
-RCS_NUM_CREG_LOG2 = ceil(log(RCS_NUM_CREG,2));
+RCS_NUM_CREG      = 64
+RCS_NUM_CREG_LOG2 = ceil(log(RCS_NUM_CREG,2))
 
-CGRA_IMEM_N_LINE = 128
+CGRA_IMEM_N_LINE = 256 # 128
 CGRA_IMEM_NL_LOG2 = ceil(log(CGRA_IMEM_N_LINE,2))
 
 # Memory holding the kernel configuration words (KMEM)

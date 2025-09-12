@@ -29,7 +29,7 @@ package cgra_pkg;
   localparam RC_NUM_REG     = 4;
   localparam RC_NUM_REG_LOG = $clog2(RC_NUM_REG);
 
-  localparam RCS_NUM_CREG     = 32;
+  localparam RCS_NUM_CREG     = 64;
   localparam RCS_NUM_CREG_LOG2 = $clog2(RCS_NUM_CREG);
 
   localparam DP_WIDTH       = 32;
@@ -41,7 +41,7 @@ package cgra_pkg;
   localparam N_MEM_BANKS      = N_ROW+1;
   localparam N_MEM_BANKS_LOG2 = $clog2(N_MEM_BANKS);
 
-  localparam IMEM_N_LINES      = 128; // per RC
+  localparam IMEM_N_LINES      = 256; // per RC
   localparam IMEM_N_LINES_LOG2 = $clog2(IMEM_N_LINES);
 
   // for compatibilty reason

@@ -14,10 +14,10 @@ lint_off -rule WIDTH     -file "*esl_epfl_cgra/rtl/cgra_reg_top.sv" -match "Oper
 lint_off -rule LITENDIAN -file "*esl_epfl_cgra/rtl/cgra_rcs.sv" -match "Little bit endian vector: left < right of bit range: [-1:4]*"
 
 // Some bits are indeed not used but full width is kept for concise code
-lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/synchronizer.sv" -match "Bits of signal are not used: 'conf_word_i'[11:0]"
-lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/cgra_controller.sv" -match "Bits of signal are not used: 'kmem_rdata_i'[15:12]"
-lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/context_memory_decoder.sv" -match "Bits of signal are not used: 'cm_add_i'[31:12,1:0]"
-lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/context_memory_decoder.sv" -match "Bits of signal are not used: 'cm_wdata_i'[31:16]"
+lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/synchronizer.sv" -match "Bits of signal are not used: 'conf_word_i'[13:0]"
+lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/cgra_controller.sv" -match "Bits of signal are not used: 'kmem_rdata_i'[17:14]"
+lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/context_memory_decoder.sv" -match "Bits of signal are not used: 'cm_add_i'[31:13,1:0]"
+lint_off -rule UNUSED -file "*esl_epfl_cgra/rtl/context_memory_decoder.sv" -match "Bits of signal are not used: 'cm_wdata_i'[31:18]"
 
 // For loop variable (32 bits) compared with an actual signal
 lint_off -rule WIDTH  -file "*esl_epfl_cgra/rtl/context_memory_decoder.sv" -match "Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'bk_sel' generates 3 bits."

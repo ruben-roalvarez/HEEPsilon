@@ -358,7 +358,7 @@ void kcom_printPerf( kcom_perf_t *perf )
 #if PRINT_COLUMN_STATS
     PRINTF("\n\r===========\n\r COLUMN STATS BELOW \n\r===========\n\r");
     PRINTF("Col\tAct\tStl\n\r");
-    for(int8_t col_idx = 0 ; col_idx < CGRA_MAX_COLS ; col_idx++)
+    for(int8_t col_idx = 0 ; col_idx < CGRA_N_COLS ; col_idx++)
     {
         PRINTF("%01d\t%03d\t%03d\n\r", col_idx, perf->cols[col_idx].cyc_act, perf->cols[col_idx].cyc_stl );
     }
