@@ -1,0 +1,195 @@
+Time = 0
+NOP                      SADD R1, ZERO ZERO       NOP                      NOP                      
+SADD R1, ZERO ZERO       NOP                      NOP                      SADD R1, ZERO ZERO       
+NOP                      LWD R0, arg4             SADD R2, ZERO ZERO       SADD R1, ZERO ZERO       
+NOP                      LWD R1, arg0             SADD R0, ZERO 20         NOP                      
+Time = 1
+LWD R2, arg1             NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      LWD R0, arg0             
+NOP                      NOP                      LWD R1, arg3             NOP                      
+Time = 2
+LWD R1, arg2             NOP                      NOP                      NOP                      
+NOP                      LWD R1, arg1             NOP                      LWD R2, arg2             
+NOP                      NOP                      NOP                      NOP                      
+JUMP 0, 3                NOP                      LWD R2, arg1             NOP                      
+Time = 3
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SADD R1, R1 ZERO         
+NOP                      NOP                      NOP                      NOP                      
+Time = 4
+JUMP 0, 5                NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SMUL R0, R1R 4           NOP                      
+NOP                      NOP                      NOP                      SADD R0, R1T 1           
+Time = 5
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SADD R1, R0B ZERO        
+NOP                      NOP                      SADD R3, R2,R0T          NOP                      
+Time = 6
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SMUL R0, R1R 4           NOP                      
+NOP                      SWI ZERO,R3R             BLT R0R,R0, 5            SADD R0, R1T 1           
+Time = 7
+NOP                      SADD R0, R1 ZERO         NOP                      NOP                      
+SADD R0, R1 ZERO         NOP                      NOP                      SADD R0, R1 ZERO         
+NOP                      NOP                      SADD R1, R2 ZERO         NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 8
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SADD R0, R2,R0T          NOP                      
+Time = 9
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      SWI ZERO,R0R             JUMP 0, 10               NOP                      
+Time = 10
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SADD R0, ZERO 30         NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 11
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      BGE R1,R0T, 38           NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 12
+NOP                      SADD R2, ZERO 20         SADD R0, ZERO ZERO       NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SMUL R0, R1 4            NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 13
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SADD R0, R0B ZERO        NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 14
+NOP                      NOP                      NOP                      NOP                      
+NOP                      SADD R0, R0R ZERO        NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 15
+NOP                      NOP                      NOP                      NOP                      
+SADD R1, R0R ZERO        NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 16
+SADD R0, R1,R1B          NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 17
+JUMP 0, 18               NOP                      NOP                      NOP                      
+SWI ZERO,R0T             NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 18
+NOP                      SMUL R1, R0 20           SADD R0, R0 ZERO         NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SMUL R0, R1 20           NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 19
+NOP                      SADD R1, R1,R0R          SADD R1, R0 1            SMUL R0, R0L 4           
+NOP                      NOP                      SMUL R0, R0T 4           NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SADD R0, R0T,R0B         NOP                      
+Time = 20
+SADD R0, R2,R0L          BGE R1R,R2, 32           SMUL R0, R0 4            NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      SMUL R0, R1 4            NOP                      
+NOP                      SMUL R0, R1B 4           NOP                      SMUL R0, R0L 4           
+Time = 21
+NOP                      SMUL R1, R0 20           SADD R1, R1 ZERO         NOP                      
+SMUL R1, R0 4            NOP                      NOP                      NOP                      
+NOP                      SADD R1, R0,R0R          SMUL R0, R1 20           SADD R1, R0,R0B          
+NOP                      SADD R0, R1,R0           SADD R0, R1,R0B          NOP                      
+Time = 22
+SADD R0, R1,R1B          SADD R1, R1,R1R          SADD R0, R1 1            SMUL R0, R1L 4           
+NOP                      SADD R0, R1,R0R          SMUL R0, R1T 4           SMUL R1, R0 4            
+LWI R0, R1R              LWI R1, R0B              NOP                      NOP                      
+LWI R0, R0B              LWI R0, R0R              SADD R0, R0T,R1B         LWI R0, R1T              
+Time = 23
+SADD R0, R2,R0L          BGE R0R,R2, 27           SMUL R1, R1 4            LWI R0, R0R              
+NOP                      NOP                      NOP                      SADD R1, R2,R1           
+FXPMUL R0, R0,R1R        NOP                      SMUL R0, R1 4            NOP                      
+NOP                      SMUL R0, R1B 4           FXPMUL R0, R0R,R0L       SMUL R0, R0L 4           
+Time = 24
+NOP                      SMUL R1, R0 20           SADD R1, R0 ZERO         NOP                      
+SMUL R1, R0 4            NOP                      NOP                      NOP                      
+SADD R0, R0B,R0          SADD R1, R0,R0R          SMUL R0, R1 20           SADD R1, R0,R0B          
+NOP                      SADD R0, R1,R0           SADD R0, R1,R1B          SADD R0, R0B,R0L         
+Time = 25
+SADD R0, R1,R1B          SADD R1, R1,R1R          SADD R0, R1 1            SMUL R0, R1L 4           
+SWI R0B,R0R              SADD R0, R1,R0R          SMUL R0, R1T 4           SMUL R1, R0 4            
+LWI R0, R1R              LWI R1, R0B              NOP                      SWI R0B,R1T              
+LWI R0, R0B              LWI R0, R0R              SADD R0, R0T,R1B         LWI R0, R1T              
+Time = 26
+SADD R0, R2,R0L          BLT R0R,R2, 24           SMUL R1, R1 4            LWI R0, R0R              
+NOP                      NOP                      NOP                      SADD R1, R2,R1           
+FXPMUL R0, R0,R1R        NOP                      SMUL R0, R1 4            NOP                      
+NOP                      SMUL R0, R1B 4           FXPMUL R0, R0R,R0L       SMUL R0, R0L 4           
+Time = 27
+NOP                      NOP                      NOP                      NOP                      
+SMUL R1, R0 4            NOP                      NOP                      NOP                      
+SADD R0, R0B,R0          SADD R1, R0,R0R          NOP                      SADD R1, R0,R0B          
+NOP                      SADD R0, R1,R0           SADD R0, R1,R1B          SADD R0, R0B,R0L         
+Time = 28
+SADD R0, R1,R1B          NOP                      NOP                      NOP                      
+SWI R0B,R0R              SADD R0, R1,R0R          NOP                      SMUL R1, R0 4            
+LWI R0, R1R              LWI R1, R0B              NOP                      SWI R0B,R1T              
+LWI R0, R0B              LWI R0, R0R              NOP                      LWI R0, R1T              
+Time = 29
+NOP                      NOP                      NOP                      LWI R0, R0R              
+NOP                      NOP                      NOP                      SADD R1, R2,R1           
+FXPMUL R0, R0,R1R        NOP                      NOP                      NOP                      
+NOP                      NOP                      FXPMUL R0, R0R,R0L       NOP                      
+Time = 30
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+SADD R0, R0B,R0          NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SADD R0, R0B,R0L         
+Time = 31
+NOP                      JUMP 0, 37               NOP                      NOP                      
+SWI R0B,R0R              NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SWI R0B,R1T              
+NOP                      NOP                      NOP                      NOP                      
+Time = 32
+NOP                      NOP                      NOP                      NOP                      
+SMUL R1, R0 4            NOP                      NOP                      NOP                      
+NOP                      SADD R1, R0,R0R          NOP                      SADD R1, R0,R0B          
+NOP                      SADD R0, R1,R0           SADD R0, R1,R0B          NOP                      
+Time = 33
+SADD R0, R1,R1B          NOP                      NOP                      NOP                      
+NOP                      SADD R0, R1,R0R          NOP                      SMUL R1, R0 4            
+LWI R0, R1R              LWI R1, R0B              NOP                      NOP                      
+LWI R0, R0B              LWI R0, R0R              NOP                      LWI R0, R1T              
+Time = 34
+NOP                      NOP                      NOP                      LWI R0, R0R              
+NOP                      NOP                      NOP                      SADD R1, R2,R1           
+FXPMUL R0, R0,R1R        NOP                      NOP                      NOP                      
+NOP                      NOP                      FXPMUL R0, R0R,R0L       NOP                      
+Time = 35
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+SADD R0, R0B,R0          NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SADD R0, R0B,R0L         
+Time = 36
+NOP                      JUMP 0, 37               NOP                      NOP                      
+SWI R0B,R0R              NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      SWI R0B,R1T              
+NOP                      NOP                      NOP                      NOP                      
+Time = 37
+JUMP 0, 10               SADD R0, R0 1            NOP                      NOP                      
+SADD R0, R0 1            NOP                      NOP                      SADD R0, R0 1            
+NOP                      NOP                      SADD R1, R1 1            NOP                      
+NOP                      NOP                      NOP                      NOP                      
+Time = 38
+EXIT                     NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
+NOP                      NOP                      NOP                      NOP                      
