@@ -18,7 +18,7 @@
         // The default value should be the same than num_columns, put an number to change it
         max_columns: default
         // Number of instructions each RC can contain (usually a power of 2)
-        rcs_num_instr: 32
+        rcs_num_instr: 64
         // Context memory bank depth
         // This parameter is by default set to max_columns*rcs_num_instr
         // The default depth correspond to a minimum required in case a kernel uses max_columns and rcs_num_instr instructions per RC

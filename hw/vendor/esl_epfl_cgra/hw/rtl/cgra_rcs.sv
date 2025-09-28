@@ -47,9 +47,7 @@ module cgra_rcs
   logic [RC_CONST_WIDTH-1:0] add_inc_s [0:N_ROW-1][0:N_COL-1];
   logic [DP_WIDTH-1:0] rcs_wdata_s [0:N_COL-1];
 
-  logic [  DP_WIDTH-1:0] rcs_res [0:N_ROW-1][0:N_COL-1];
-  logic [  DP_WIDTH-1:0] rcs_res_reg [0:N_ROW-1][0:N_COL-1];
-  logic [  DP_WIDTH-1:0] rcs_res_reg_temp [0:N_ROW-1][0:N_COL-1];
+  logic [  DP_WIDTH-1:0] rcs_regs [0:N_ROW-1][0:N_COL-1][0:RC_NUM_REG-1];
   logic [ALU_N_FLAG-1:0] rcs_flag [0:N_ROW-1][0:N_COL-1];
   logic [ALU_N_FLAG-1:0] rcs_flag_reg [0:N_ROW-1][0:N_COL-1];
   logic [ALU_N_FLAG-1:0] rcs_flag_reg_temp [0:N_ROW-1][0:N_COL-1];
@@ -63,7 +61,7 @@ module cgra_rcs
   logic [   N_ROW-1:0] gnt_mask [0:N_COL-1];
   logic [   N_ROW-1:0] rvalid_mask [0:N_COL-1];
 
-  logic [-1:N_COL][  DP_WIDTH-1:0] rcs_mesh_res [-1:N_ROW];
+  logic [  DP_WIDTH-1:0] rcs_mesh_res [-1:N_ROW][-1:N_COL][0:RC_NUM_REG-1];
   logic [-1:N_COL][ALU_N_FLAG-1:0] rcs_mesh_flag [-1:N_ROW];
 
   // i,k are usually for the rows and j,l for the columns
@@ -147,7 +145,7 @@ module cgra_rcs
         rvalid_demux[j] = '0;
         // for each row
         for (int k=0; k<N_ROW; k++) begin
-          if (data_req_rvalid_mask[j][k] == 1'b1 && data_wen_s[k][j] == 1'b1 && data_rvalid_i[j] == 1'b1) begin
+          if (data_req_rvalid_mask[j][k] == 1'b1 && data_wen_s[k][j] == 1'b1 && data_rvalid_i[j] == 1'b1 && (gnt_demux[j][k] == 1'b1 || gnt_mask[j][k] == 1'b0)) begin
             rvalid_demux[j][k] = 1'b1;
             break;
           end
@@ -225,32 +223,26 @@ module cgra_rcs
       begin
         if (rst_col_i[j] == 1'b1) begin
           for (int k=0; k<N_ROW; k++) begin
-            rcs_res_reg[k][j]  <= '0;
             rcs_flag_reg[k][j] <= '0;
-            rcs_res_reg_temp[k][j]  <= '0;
             rcs_flag_reg_temp[k][j] <= '0;
           end
         end else begin
           for (int k=0; k<N_ROW; k++) begin
             if (rcs_pc_e_i[j] == 1'b0) begin // PC enable is low
               if (rvalid_demux[j][k] == 1'b1) begin // If the data is ready, copy it to a temproary buffer
-                rcs_res_reg_temp[k][j]  <= data_rdata_i[j];
                 rcs_flag_reg_temp[k][j] <= {data_rdata_i[j][DP_WIDTH-1], ~(|data_rdata_i[j])};
               end
             end else begin // PC enable is high
               if (data_req_s[k][j] == 1'b0) begin
                 if (rcs_nop_s[k][j] == 1'b0) begin
-                  rcs_res_reg[k][j]  <= rcs_res[k][j];
                   rcs_flag_reg[k][j] <= rcs_flag[k][j];
                 end
               end else begin  // Read data instruction
                 if (rcs_nop_s[k][j] == 1'b0) begin
                   if (rvalid_demux[j][k] == 1'b1) begin // If the data is ready, copy it straight away.
-                    rcs_res_reg[k][j]  <= data_rdata_i[j];
                     rcs_flag_reg[k][j] <= {data_rdata_i[j][DP_WIDTH-1], ~(|data_rdata_i[j])};
                   end else begin  // If the data is not ready, it was ready before, so copy the temp buffer.
                     // This is necessary as some special cases require it.
-                    rcs_res_reg[k][j]  <= rcs_res_reg_temp[k][j];
                     rcs_flag_reg[k][j] <= rcs_flag_reg_temp[k][j];
                   end
                 end
@@ -350,16 +342,16 @@ module cgra_rcs
     // RCs data result connections
     for (int k=0; k<N_ROW; k++) begin
       for (int l=0; l<N_COL; l++) begin
-        rcs_mesh_res[k][l] = rcs_res_reg[k][l];
+        rcs_mesh_res[k][l] = rcs_regs[k][l];
       end
     end
     for (int k=0; k<N_ROW; k++) begin
-      rcs_mesh_res[k][-1] = rcs_res_reg[k][N_COL-1];
-      rcs_mesh_res[k][N_COL] = rcs_res_reg[k][0];
+      rcs_mesh_res[k][-1] = rcs_regs[k][N_COL-1];
+      rcs_mesh_res[k][N_COL] = rcs_regs[k][0];
     end
     for (int l=0; l<N_COL; l++) begin
-      rcs_mesh_res[-1][l] = rcs_res_reg[N_ROW-1][l];
-      rcs_mesh_res[N_ROW][l] = rcs_res_reg[0][l];
+      rcs_mesh_res[-1][l] = rcs_regs[N_ROW-1][l];
+      rcs_mesh_res[N_ROW][l] = rcs_regs[0][l];
     end
 
     // RCs flag result connections
@@ -409,17 +401,16 @@ module cgra_rcs
           .conf_re_i     (    rcs_conf_re_i     [j  ] ),
           .global_pc_i   (     rcs_col_pc_i     [j  ] ),
           .pc_en_i       (       rcs_pc_e_i     [j  ] ),
-          .own_res_i     (     rcs_mesh_res[i  ][j  ] ),
-          .left_res_i    (     rcs_mesh_res[i  ][j-1] ),
-          .right_res_i   (     rcs_mesh_res[i  ][j+1] ),
-          .top_res_i     (     rcs_mesh_res[i-1][j  ] ),
-          .bottom_res_i  (     rcs_mesh_res[i+1][j  ] ),
+          .left_regs_i   (     rcs_mesh_res[i  ][j-1] ),
+          .right_regs_i  (     rcs_mesh_res[i  ][j+1] ),
+          .top_regs_i    (     rcs_mesh_res[i-1][j  ] ),
+          .bottom_regs_i (     rcs_mesh_res[i+1][j  ] ),
           .own_flag_i    (    rcs_mesh_flag[i  ][j  ] ),
           .left_flag_i   (    rcs_mesh_flag[i  ][j-1] ),
           .right_flag_i  (    rcs_mesh_flag[i  ][j+1] ),
           .top_flag_i    (    rcs_mesh_flag[i-1][j  ] ),
           .bottom_flag_i (    rcs_mesh_flag[i+1][j  ] ),
-          .result_o      (          rcs_res[i  ][j  ] ),
+          .self_regs_o   (         rcs_regs[i  ][j  ] ),
           .flag_o        (         rcs_flag[i  ][j  ] ),
           .br_req_o      (       rcs_br_req[i  ][j  ] ),
           .br_add_o      (       rcs_br_add[i  ][j  ] ),

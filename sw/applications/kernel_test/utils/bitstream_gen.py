@@ -25,8 +25,8 @@ type_3_instr        = ['BEQ','BNE','BLT','BGE']
 type_5_instr        = ['LWD','SWD']
 type_6_instr        = ['LWI','SWI']
 
-muxA_list_ext = np.concatenate((muxA_list , ["ROUT"]),axis=0)
-muxB_list_ext = np.concatenate((muxB_list , ["ROUT"]),axis=0)
+muxA_list_ext = ['ZERO', 'IMM', 'R0', 'R1', 'R2', 'R3', 'R0L', 'R0R', 'R0T', 'R0B', 'R1L', 'R1R', 'R1T', 'R1B', 'R2L', 'R2R', 'R2T', 'R2B', 'R3L', 'R3R', 'R3T', 'R3B']
+muxB_list_ext = ['ZERO', 'IMM', 'R0', 'R1', 'R2', 'R3', 'R0L', 'R0R', 'R0T', 'R0B', 'R1L', 'R1R', 'R1T', 'R1B', 'R2L', 'R2R', 'R2T', 'R2B', 'R3L', 'R3R', 'R3T', 'R3B']
 
 def print_w(string) :
     '''
@@ -154,11 +154,6 @@ def decode_instruction(instruction) :
         instr[0] = 'SDIV'
     instr[1] = 'ZERO' if instr[1] == '0' else instr[1]
     instr[2] = 'ZERO' if instr[2] == '0' else instr[2]
-    for i in range(SIZE_DEC_INSTR) :
-        if instr[i] == 'ROUTA' :
-            instr[i] = 'ROUT'
-        if (instr[i] == 'Rout') or (instr[i] == 'ROUT') :
-            instr[i] = 'ROUT'
     for i in range (SIZE_DEC_INSTR) :
         if (instr[i] == '') :
             instr[i] = '-'
@@ -187,44 +182,44 @@ def translate_instructions(instr_usi) :
                     instr_usi[3] if (instr_usi[3] in muxB_list_ext) else "ZERO",op,instr_usi[1],\
                     '-','-']
 
-        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
             instr_epfl[-1] = instr_usi[2]
             instr_epfl[0] = 'IMM'
             check = True
 
-        if instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-','ROUT'] :
+        if instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_usi) + " -> " + string_instr(instr_epfl))
+                sys.exit("Can't have two immediates as input (1): "+ string_instr(instr_usi) + " -> " + string_instr(instr_epfl))
             instr_epfl[-1] = instr_usi[3]
             instr_epfl[1] = 'IMM'
     elif op in type_3_instr :
         instr_epfl=[instr_usi[1],instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",op,'-',\
                     '-',instr_usi[3]]
 
-        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
             sys.exit("Can't have immediates as operand B : "+ string_instr(instr_usi) + " -> " + string_instr(instr_epfl))
     elif op in type_2_instr :
         instr_epfl=[instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",\
                     instr_usi[3] if (instr_usi[3] in muxB_list_ext) else "ZERO",op,instr_usi[1],\
                     instr_usi[4],"-"]
-        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
             instr_epfl[-1] = instr_usi[2]
             check = True
-        elif instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-','ROUT'] :
+        elif instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_epfl))
+                sys.exit("Can't have two immediates as input (2): "+ string_instr(instr_epfl))
             instr_epfl[-1] = instr_usi[3]
     elif op in type_6_instr :
         if op == 'INA' :
             instr_epfl=[instr_usi[2],'-',op,instr_usi[1],'-','-']
 
-            if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+            if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
                 instr_epfl[-1] = instr_usi[2]
                 instr_epfl[0] = 'IMM'
         elif op == 'INB' :
             instr_epfl=['-',instr_usi[2],op,instr_usi[1],'-','-']
 
-            if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+            if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
                 instr_epfl[-1] = instr_usi[2]
                 instr_epfl[1] = 'IMM'
 
@@ -233,52 +228,42 @@ def translate_instructions(instr_usi) :
                 instr_epfl=['-',instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",op,instr_usi[1],\
                     '-','-']
 
-                if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+                if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
                     instr_epfl[-1] = instr_usi[2]
                     instr_epfl[1] = 'IMM'
             else : # SWI
                 instr_epfl=[instr_usi[1],instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",op,'-',\
                     '-','-']
 
-                if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
+                if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-'] :
                     instr_epfl[-1] = instr_usi[2]
                     instr_epfl[1] = 'IMM'
 
     elif op in type_5_instr :
-        increment = 4 if instr_usi[2] == '-' else instr_usi[2]
+        increment = 4 if instr_usi[2] in ['-',''] else instr_usi[2]
         if op == 'SWD' :
             instr_epfl = [instr_usi[1],'-',op,'-','-',increment]
         else :
             instr_epfl = ['-','-',op,instr_usi[1],'-',increment]
     elif op == 'JUMP' :
-        instr_epfl=[instr_usi[2] if (instr_usi[2] in muxA_list_ext) else "ZERO",\
-                    instr_usi[3] if (instr_usi[3] in muxB_list_ext) else "ZERO",'JUMP',\
+        instr_epfl=[instr_usi[1] if (instr_usi[1] in muxA_list_ext) else "ZERO",\
+                    instr_usi[2] if (instr_usi[2] in muxB_list_ext) else "ZERO",'JUMP',\
                     '-','-','-']
 
-        if instr_usi[2] not in muxA_list_ext and instr_usi[2] not in ['-','ROUT'] :
-            instr_epfl[-1] = instr_usi[2]
+        if instr_usi[1] not in muxA_list_ext and instr_usi[1] not in ['-', '0'] :
+            instr_epfl[-1] = instr_usi[1]
             instr_epfl[0] = 'IMM'
             check = True
 
-        if instr_usi[3] not in muxB_list_ext and instr_usi[3] not in ['-','ROUT'] :
+        if instr_usi[2] not in muxB_list_ext and instr_usi[2] not in ['-', '0'] :
             if check :
-                sys.exit("Can't have two immediates as input : "+ string_instr(instr_epfl))
-            instr_epfl[-1] = instr_usi[3]
+                sys.exit("Can't have two immediates as input (3): "+ string_instr(instr_usi) + ' -> ' + string_instr(instr_epfl))
+            instr_epfl[-1] = instr_usi[2]
             instr_epfl[1] = 'IMM'
     elif op == 'EXIT' :
         instr_epfl = ['-','-','EXIT','-','-','-']
     else :
         sys.exit("Line doesn't correspond to any known instruction : " + string_instr(instr_usi))
-
-    for i in [0,1] :
-        if instr_epfl[i] == 'ROUT' :
-            instr_epfl[i] = 'SELF'
-
-    if instr_epfl[4] == 'ROUT' :
-        instr_epfl[4] = 'SELF'
-
-    if instr_epfl[3] == 'ROUT' :
-            instr_epfl[3] = '-'
 
     if instr_epfl[-1] == 'ONE' :
             instr_epfl[-1] = '1'
